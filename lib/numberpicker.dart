@@ -7,6 +7,15 @@ import 'package:infinite_listview/infinite_listview.dart';
 
 /// Created by Marcin Szałek
 
+class CustomMaxFilingVelocityScrollPhysics extends AlwaysScrollableScrollPhysics {
+  final double velocity;
+  CustomMaxFilingVelocityScrollPhysics(this.velocity);
+
+  @override
+  double get maxFlingVelocity =>
+      this.velocity == null ? super.maxFlingVelocity : this.velocity;
+}
+
 ///NumberPicker is a widget designed to pick a number between #minValue and #maxValue
 class NumberPicker extends StatelessWidget {
   ///height of every list element for normal number picker
@@ -25,6 +34,7 @@ class NumberPicker extends StatelessWidget {
     @required this.maxValue,
     @required this.onChanged,
     this.itemExtent = kDefaultItemExtent,
+    this.maxFlingVelocity,
     this.listViewHeight = kDefaultListViewCrossAxisSize,
     this.step = 1,
     this.zeroPad = false,
@@ -56,6 +66,7 @@ class NumberPicker extends StatelessWidget {
     @required this.minValue,
     @required this.maxValue,
     @required this.onChanged,
+    this.maxFlingVelocity,
     this.itemExtent = kDefaultItemExtent,
     this.listViewWidth = kDefaultListViewCrossAxisSize,
     this.step = 1,
@@ -96,6 +107,7 @@ class NumberPicker extends StatelessWidget {
     @required this.maxValue,
     @required this.onChanged,
     this.decimalPlaces = 1,
+    this.maxFlingVelocity,
     this.itemExtent = kDefaultItemExtent,
     this.listViewWidth = kDefaultListViewCrossAxisSize,
     this.highlightSelectedValue = true,
@@ -129,6 +141,8 @@ class NumberPicker extends StatelessWidget {
 
   ///called when selected value changes
   final ValueChanged<num> onChanged;
+
+  final double maxFlingVelocity;
 
   ///min value user can pick
   final int minValue;
@@ -263,6 +277,7 @@ class NumberPicker extends StatelessWidget {
               new ListView.builder(
                 scrollDirection: scrollDirection,
                 controller: intScrollController,
+                physics: CustomMaxFilingVelocityScrollPhysics(this.maxFlingVelocity),
                 itemExtent: itemExtent,
                 itemCount: listItemCount,
                 cacheExtent: _calculateCacheExtent(listItemCount),
@@ -325,6 +340,7 @@ class NumberPicker extends StatelessWidget {
                 controller: decimalScrollController,
                 itemExtent: itemExtent,
                 itemCount: decimalItemCount,
+                physics: CustomMaxFilingVelocityScrollPhysics(this.maxFlingVelocity),
                 itemBuilder: (BuildContext context, int index) {
                   final int value = index - 1;
 
@@ -377,6 +393,7 @@ class NumberPicker extends StatelessWidget {
           child: Stack(
             children: <Widget>[
               InfiniteListView.builder(
+                physics: CustomMaxFilingVelocityScrollPhysics(this.maxFlingVelocity),
                 controller: intScrollController,
                 itemExtent: itemExtent,
                 itemBuilder: (BuildContext context, int index) {
@@ -533,7 +550,8 @@ class NumberPicker extends StatelessWidget {
   /// Use it only when user manually stops scrolling in infinite loop
   void _animateIntWhenUserStoppedScrolling(int valueToSelect) {
     // estimated index of currently selected element based on offset and item extent
-    int currentlySelectedElementIndex = intScrollController.offset ~/ itemExtent;
+    int currentlySelectedElementIndex =
+        intScrollController.offset ~/ itemExtent;
 
     // when more(less) than half of the top(bottom) element is hidden
     // then we should increment(decrement) index in case of positive(negative) offset
